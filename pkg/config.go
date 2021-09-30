@@ -24,6 +24,8 @@ func GetConfig() *WildFireConfig {
 
 func (config *WildFireConfig) SaveConfig() error {
 	viper.Set("projects", config.Projects)
+	viper.Set("groups", config.Groups)
+
 	return viper.WriteConfig()
 }
 

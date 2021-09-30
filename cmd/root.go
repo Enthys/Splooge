@@ -6,7 +6,8 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-	"wildfire/pkg"
+	"wildfire/cmd/group"
+	"wildfire/cmd/project"
 )
 
 var cfgFile string
@@ -15,28 +16,6 @@ var rootCmd = &cobra.Command{
 	Use:   "wildfire",
 	Short: "Application for mass update of repositories",
 	Run: func(cmd *cobra.Command, args []string) {
-	},
-}
-
-var addProjectCmd = &cobra.Command{
-	Use: "add-project [name] [type] [url]",
-	Short: "Add Project to the loaded configuration",
-	Run: func(cmd *cobra.Command, args []string) {
-		if len(args) != 3 {
-			fmt.Errorf("%s", "Invalid number of arguments provided")
-		}
-
-		config := pkg.GetConfig()
-		err := config.AddProject(&pkg.Project{
-			Name: args[0],
-			Type: pkg.ProjectType(args[1]),
-			URL:  pkg.ProjectPath(args[2]),
-		})
-
-		cobra.CheckErr(err)
-
-		err = config.SaveConfig()
-		cobra.CheckErr(err)
 	},
 }
 
@@ -49,17 +28,11 @@ func Execute() {
 func init() {
 	cobra.OnInitialize(initConfig)
 
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
 	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.wildfire.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 
-	rootCmd.AddCommand(addProjectCmd)
+	rootCmd.AddCommand(project.ProjectCmd)
+	rootCmd.AddCommand(group.GroupCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.
