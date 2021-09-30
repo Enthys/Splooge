@@ -6,13 +6,13 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
-	"splooge/pkg"
+	"wildfire/pkg"
 )
 
 var cfgFile string
 
 var rootCmd = &cobra.Command{
-	Use:   "splooge",
+	Use:   "wildfire",
 	Short: "Application for mass update of repositories",
 	Run: func(cmd *cobra.Command, args []string) {
 	},
@@ -53,7 +53,7 @@ func init() {
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
 
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.splooge.yaml)")
+	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.wildfire.yaml)")
 
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
@@ -72,8 +72,8 @@ func initConfig() {
 		dir, err := os.Getwd()
 		cobra.CheckErr(err)
 
-		// Search config in current directory with name ".splooge" (without extension).
-		cfgFile = filepath.FromSlash(dir + "/.splooge.yaml")
+		// Search config in current directory with name ".wildire" (without extension).
+		cfgFile = filepath.FromSlash(dir + "/.wildfire.yaml")
 		viper.SetConfigFile(cfgFile)
 	}
 

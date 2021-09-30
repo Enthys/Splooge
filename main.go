@@ -1,6 +1,6 @@
 package main
 
-import "splooge/cmd"
+import "wildfire/cmd"
 
 func main() {
 	cmd.Execute()

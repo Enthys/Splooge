@@ -1,4 +1,4 @@
-module splooge
+module wildfire
 
 go 1.16
 

@@ -7,7 +7,7 @@ import (
 
 type ProjectGroup []string
 
-func (group *ProjectGroup) AddProject(config *SploogeConfig, projectName string) error {
+func (group *ProjectGroup) AddProject(config *WildFireConfig, projectName string) error {
 	if _, ok := config.Projects[projectName]; ok == false {
 		return errors.New(fmt.Sprintf("Project with name `%s` does not exist", projectName))
 	}

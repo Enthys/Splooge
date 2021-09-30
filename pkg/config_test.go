@@ -1,12 +1,12 @@
 package pkg_test
 
 import (
-	"splooge/pkg"
+	"wildfire/pkg"
 	"testing"
 )
 
-func TestSploogeConfig_AddProject_returns_nil_if_project_was_added(t *testing.T) {
-	config := &pkg.SploogeConfig{Projects: map[string]pkg.Project{}}
+func TestWildFireConfig_AddProject_returns_nil_if_project_was_added(t *testing.T) {
+	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{}}
 	err := config.AddProject(&pkg.Project{
 		Name: "foo",
 		Type: pkg.ProjectTypeGit,
@@ -18,8 +18,8 @@ func TestSploogeConfig_AddProject_returns_nil_if_project_was_added(t *testing.T)
 	}
 }
 
-func TestSploogeConfig_AddProject_returns_an_error_if_project_already_exists_in_config(t *testing.T) {
-	config := &pkg.SploogeConfig{Projects: map[string]pkg.Project{}}
+func TestWildFireConfig_AddProject_returns_an_error_if_project_already_exists_in_config(t *testing.T) {
+	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{}}
 	_ = config.AddProject(&pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/foo/bar" })
 	err := config.AddProject(&pkg.Project{ Name: "foo", Type: pkg.ProjectTypeGit, URL:  "github.com/foo/bar" })
 
@@ -28,9 +28,9 @@ func TestSploogeConfig_AddProject_returns_an_error_if_project_already_exists_in_
 	}
 }
 
-func TestSploogeConfig_ReplaceConfig_should_replace_the_project_in_the_configuration(t *testing.T) {
+func TestWildFireConfig_ReplaceConfig_should_replace_the_project_in_the_configuration(t *testing.T) {
 	project := &pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/foo/bar" }
-	config := &pkg.SploogeConfig{Projects: map[string]pkg.Project{"foo": *project}}
+	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{"foo": *project}}
 	retrievedProject := config.GetProject("foo")
 
 	if retrievedProject == nil {
@@ -44,8 +44,8 @@ func TestSploogeConfig_ReplaceConfig_should_replace_the_project_in_the_configura
 	}
 }
 
-func TestSploogeConfig_GetProject_should_return_nil_if_it_does_not_find_the_requested_project(t *testing.T) {
-	config := &pkg.SploogeConfig{Projects: map[string]pkg.Project{}}
+func TestWildFireConfig_GetProject_should_return_nil_if_it_does_not_find_the_requested_project(t *testing.T) {
+	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{}}
 	retrievedProject := config.GetProject("foo")
 
 	if retrievedProject != nil {
@@ -53,8 +53,8 @@ func TestSploogeConfig_GetProject_should_return_nil_if_it_does_not_find_the_requ
 	}
 }
 
-func TestSploogeConfig_RemoveProject_should_remove_the_project_from_the_configuration(t *testing.T) {
-	config := &pkg.SploogeConfig{Projects: map[string]pkg.Project{
+func TestWildFireConfig_RemoveProject_should_remove_the_project_from_the_configuration(t *testing.T) {
+	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{
 		"foo": pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/foo/bar" },
 		"bar": pkg.Project{"bar", pkg.ProjectTypeGit, "github.com/bar/bar" },
 	}}
@@ -71,8 +71,8 @@ func TestSploogeConfig_RemoveProject_should_remove_the_project_from_the_configur
 	}
 }
 
-func TestSploogeConfig_SetProject_should_add_project_if_it_does_not_exist(t *testing.T) {
-	config := &pkg.SploogeConfig{Projects: map[string]pkg.Project{}}
+func TestWildFireConfig_SetProject_should_add_project_if_it_does_not_exist(t *testing.T) {
+	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{}}
 	config.SetProject(&pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/foo/bar" })
 	fooProject := config.GetProject("foo")
 
@@ -81,8 +81,8 @@ func TestSploogeConfig_SetProject_should_add_project_if_it_does_not_exist(t *tes
 	}
 }
 
-func TestSploogeConfig_SetProject_should_replace_a_project_if_it_already_exists(t *testing.T) {
-	config := &pkg.SploogeConfig{Projects: map[string]pkg.Project{}}
+func TestWildFireConfig_SetProject_should_replace_a_project_if_it_already_exists(t *testing.T) {
+	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{}}
 	config.SetProject(&pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/foo/bar" })
 	config.SetProject(&pkg.Project{"foo", pkg.ProjectTypeGitLab, "github.com/foo/bar/zaz" })
 	fooProject := config.GetProject("foo")
