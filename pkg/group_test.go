@@ -7,95 +7,143 @@ import (
 	"wildfire/pkg"
 )
 
-func TestCreateGroup_should_add_the_group_to_the_provided_configuration(t *testing.T) {
+func TestProjectGroup(t *testing.T) {
+	t.Run("CreateGroup", func(t *testing.T) {
+		t.Run("should add the group to the provided configuration", func(t *testing.T) {
+			config := &pkg.WildFireConfig{
+				Projects: map[string]pkg.Project{},
+				Groups:   map[string]pkg.ProjectGroup{},
+			}
 
-}
+			_ = pkg.CreateGroup(config, "foo")
 
-func TestProjectGroup_AddProject_should_add_the_name_of_project_to_its_collection(t *testing.T) {
-	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{
-		"foo": pkg.Project{"foo", pkg.ProjectTypeGit, "https://github.com/foo"},
-	}}
-	group := &pkg.ProjectGroup{}
-	group, err := group.AddProject(config, "foo")
+			_, ok := config.Groups["foo"]
 
-	if err != nil {
-		t.Error("Failed to add project to group")
-	}
+			if !ok {
+				t.Error("Failed to find group in configuration")
+			}
+		})
 
-	if len(*group) == 0 {
-		t.Error("Project was not added to ProjectGroup collection")
-	}
-}
+		t.Run("should return a empty project group", func(t *testing.T) {
+			config := &pkg.WildFireConfig{
+				Projects: map[string]pkg.Project{},
+				Groups:   map[string]pkg.ProjectGroup{},
+			}
 
-func TestProjectGroup_AddProject_should_return_an_error_if_project_does_not_exist_in_provided_configuration(t *testing.T) {
-	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{}}
-	group := &pkg.ProjectGroup{}
-	_, err := group.AddProject(config, "foo")
+			group := pkg.CreateGroup(config, "foo")
 
-	if err == nil {
-		t.Error("An error should have been returned.")
-	}
-}
+			if len(*group) != 0 {
+				t.Errorf("Group should have been returned empty. Group has length of %d", len(*group))
+			}
+		})
+	})
 
-func TestProjectGroup_AddProject_should_not_add_projects_which_are_already_in_the_group(t *testing.T) {
-	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{"foo": pkg.Project{"", "", ""}}}
-	group := &pkg.ProjectGroup{"foo", "bar"}
-	group, _ = group.AddProject(config, "foo")
+	t.Run("RemoveGroup", func(t *testing.T) {
+		t.Run("should remove the group from the provided configuration", func(t *testing.T) {
+			config := &pkg.WildFireConfig{Groups: map[string]pkg.ProjectGroup{
+				"foo": {"bar", "zaz"},
+			}}
 
-	if len(*group) > 2 {
-		t.Error("Project should not have been added to group twice.")
-	}
-}
+			pkg.RemoveGroup(config, "foo")
 
-func TestProjectGroup_RemoveProject_should_remove_the_project_from_the_group(t *testing.T) {
-	group := &pkg.ProjectGroup{"foo", "bar", "zaz"}
-	result := group.RemoveProject("bar")
+			if len(config.Groups) != 0 {
+				t.Error("Group was not removed from configuration")
+			}
+		})
+	})
 
-	if len(result) != 2 {
-		t.Error(fmt.Sprintf("Group has invalid number of projects. Expected %d received %d", len(result), 3))
-	}
+	t.Run("AddProject", func(t *testing.T) {
+		t.Run("should add the name of project to its collection", func(t *testing.T) {
+			config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{
+				"foo": {"foo", pkg.ProjectTypeGit, "https://github.com/foo"},
+			}}
+			group := &pkg.ProjectGroup{}
+			group, err := group.AddProject(config, "foo")
 
-	expectedGroup := pkg.ProjectGroup{"foo", "zaz"}
-	if !reflect.DeepEqual(result, expectedGroup) {
-		t.Errorf(
-			"Expected group does not match result. Expected %+v received %+v",
-			expectedGroup,
-			group,
-		)
-	}
-}
+			if err != nil {
+				t.Error("Failed to add project to group")
+			}
 
-func TestProjectGroup_RemoveProject_should_return_the_same_project_group_if_project_does_not_exist(t *testing.T) {
-	group := &pkg.ProjectGroup{"foo", "bar"}
-	result := group.RemoveProject("zaz")
+			if len(*group) == 0 {
+				t.Error("Project was not added to ProjectGroup collection")
+			}
+		})
 
-	if !reflect.DeepEqual(group, &result) {
-		t.Errorf(
-			"Expected group does not match result. Expected %+v received %+v",
-			group,
-			&result,
-		)
-	}
-}
+		t.Run("should_return_an_error_if_project_does_not_exist_in_provided_configuration", func(t *testing.T) {
+			config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{}}
+			group := &pkg.ProjectGroup{}
+			_, err := group.AddProject(config, "foo")
 
-func TestProjectGroup_HasProject_should_return_true_if_project_exists_in_group(t *testing.T) {
-	group := &pkg.ProjectGroup{"foo", "bar"}
-	projectName := "foo"
+			if err == nil {
+				t.Error("An error should have been returned.")
+			}
+		})
 
-	if group.HasProject(&projectName) == false {
-		t.Error(
-			fmt.Sprintf("HasProject should have returned true. Expected '%t' Received '%t'", true, false),
-		)
-	}
-}
+		t.Run("should not add projects which are already in the group", func(t *testing.T) {
+			config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{"foo": {"", "", ""}}}
+			group := &pkg.ProjectGroup{"foo", "bar"}
+			group, _ = group.AddProject(config, "foo")
 
-func TestProjectGroup_HasProject_should_return_false_if_project_does_not_exist_in_group(t *testing.T) {
-	group := &pkg.ProjectGroup{"foo", "bar"}
-	projectName := "zaz"
+			if len(*group) > 2 {
+				t.Error("Project should not have been added to group twice.")
+			}
+		})
+	})
 
-	if group.HasProject(&projectName) == true {
-		t.Error(
-			fmt.Sprintf("HasProject should have returned false. Expected '%t' Received '%t'", false, true),
-		)
-	}
+	t.Run("RemoveProject", func(t *testing.T) {
+		t.Run("should remove the project from the group", func(t *testing.T) {
+			group := &pkg.ProjectGroup{"foo", "bar", "zaz"}
+			result := group.RemoveProject("bar")
+
+			if len(result) != 2 {
+				t.Error(fmt.Sprintf("Group has invalid number of projects. Expected %d received %d", len(result), 3))
+			}
+
+			expectedGroup := pkg.ProjectGroup{"foo", "zaz"}
+			if !reflect.DeepEqual(result, expectedGroup) {
+				t.Errorf(
+					"Expected group does not match result. Expected %+v received %+v",
+					expectedGroup,
+					group,
+				)
+			}
+		})
+
+		t.Run("should return the same project group if project does not exist", func(t *testing.T) {
+			group := &pkg.ProjectGroup{"foo", "bar"}
+			result := group.RemoveProject("zaz")
+
+			if !reflect.DeepEqual(group, &result) {
+				t.Errorf(
+					"Expected group does not match result. Expected %+v received %+v",
+					group,
+					&result,
+				)
+			}
+		})
+	})
+
+	t.Run("HasProject", func(t *testing.T) {
+		t.Run("should return true if project exists in group", func(t *testing.T) {
+			group := &pkg.ProjectGroup{"foo", "bar"}
+			projectName := "foo"
+
+			if group.HasProject(&projectName) == false {
+				t.Error(
+					fmt.Sprintf("HasProject should have returned true. Expected '%t' Received '%t'", true, false),
+				)
+			}
+		})
+
+		t.Run("should return false if project does not exist in group", func(t *testing.T) {
+			group := &pkg.ProjectGroup{"foo", "bar"}
+			projectName := "zaz"
+
+			if group.HasProject(&projectName) == true {
+				t.Error(
+					fmt.Sprintf("HasProject should have returned false. Expected '%t' Received '%t'", false, true),
+				)
+			}
+		})
+	})
 }

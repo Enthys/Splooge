@@ -19,6 +19,10 @@ func CreateGroup(config *WildFireConfig, name string) *ProjectGroup {
 	return &group
 }
 
+func RemoveGroup(config *WildFireConfig, groupName string) {
+	delete(config.Groups, groupName)
+}
+
 func (group *ProjectGroup) AddProject(config *WildFireConfig, projectName string) (*ProjectGroup, error) {
 	if _, ok := config.Projects[projectName]; ok == false {
 		return nil, errors.New(fmt.Sprintf("Project with name `%s` does not exist", projectName))
@@ -31,6 +35,7 @@ func (group *ProjectGroup) AddProject(config *WildFireConfig, projectName string
 	newGroup := append(*group, projectName)
 	return &newGroup, nil
 }
+
 
 func (group *ProjectGroup) HasProject(projectName *string) bool {
 	for _, project := range *group {

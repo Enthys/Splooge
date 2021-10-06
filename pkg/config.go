@@ -16,7 +16,18 @@ func GetConfig() *WildFireConfig {
 	err := viper.Unmarshal(&config)
 
 	if err != nil {
-		return &WildFireConfig{Projects: map[string]Project{}}
+		return &WildFireConfig{
+			Projects: make(map[string]Project),
+			Groups: make(map[string]ProjectGroup),
+		}
+	}
+
+	if len(config.Projects) == 0 {
+		config.Projects = make(map[string]Project)
+	}
+
+	if len(config.Groups) == 0 {
+		config.Groups = make(map[string]ProjectGroup)
 	}
 
 	return &config

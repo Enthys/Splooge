@@ -41,7 +41,7 @@ func initConfig() {
 		// Use config file from the flag.
 		viper.SetConfigFile(cfgFile)
 	} else {
-		// Find home directory.
+		// Find current directory.
 		dir, err := os.Getwd()
 		cobra.CheckErr(err)
 

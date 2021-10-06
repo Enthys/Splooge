@@ -9,7 +9,7 @@ var ProjectCmd = &cobra.Command{
 }
 
 func init() {
-	ProjectCmd.AddCommand(addProjectCmd)
-	ProjectCmd.AddCommand(removeProjectCmd)
-	ProjectCmd.AddCommand(setProjectCmd)
+	ProjectCmd.AddCommand(NewAddProjectCmd())
+	ProjectCmd.AddCommand(NewRemoveProjectCmd())
+	ProjectCmd.AddCommand(NewSetProjectCmd())
 }
