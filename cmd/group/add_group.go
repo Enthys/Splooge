@@ -42,7 +42,7 @@ Groups are primarily used when commands are to be executed on specific projects.
 				}
 
 				if success == true {
-					emoji.Println(":check: Project ", name, " has been added to group ", args[0])
+					emoji.Printf(":ocean: Project '%s' has been added to group '%s'\n", name, args[0])
 					group, _ = group.AddProject(config, name)
 				}
 			}
@@ -50,6 +50,8 @@ Groups are primarily used when commands are to be executed on specific projects.
 			if success == false {
 				return nil, false, nil
 			}
+
+			config.Groups[args[0]] = *group
 
 			return config, true, nil
 		}),
