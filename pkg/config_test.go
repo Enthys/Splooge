@@ -1,9 +1,111 @@
 package pkg_test
 
 import (
-	"wildfire/pkg"
+	"fmt"
+	"github.com/spf13/viper"
+	"os"
+	"path/filepath"
 	"testing"
+	"wildfire/pkg"
 )
+
+func setConfig(file string) error {
+	dir, _ := os.Getwd()
+	cfgFile := filepath.FromSlash(fmt.Sprintf("%s/pkg/testdata/%s", dir, file))
+	viper.SetConfigFile(cfgFile)
+	err := viper.ReadInConfig()
+
+	return fmt.Errorf("failed to load '%s' configuration file. Error %s", cfgFile, err)
+}
+
+func TestGetProject_should_return_a_wildfire_config_even_if_file_does_not_exist(t *testing.T) {
+	_ = setConfig("missing")
+	config := pkg.GetConfig()
+
+	if len(config.Projects) > 0 {
+		t.Error("Expected config projects to be empty. Found ", len(config.Projects), " number of projects")
+	}
+
+	if len(config.Groups) > 0 {
+		t.Error("Expected config groups to be empty. Found ", len(config.Groups), " number of groups")
+	}
+}
+
+func TestGetProject_should_return_an_empty_wildfire_config_if_selected_config_is_invalid(t *testing.T) {
+	_ = setConfig("invalid.wildfire.yaml")
+	config := pkg.GetConfig()
+
+	if len(config.Projects) > 0 {
+		t.Error("Expected config projects to be empty. Found ", len(config.Projects), " number of projects")
+	}
+
+	if len(config.Groups) > 0 {
+		t.Error("Expected config groups to be empty. Found ", len(config.Groups), " number of groups")
+	}
+}
+
+func TestGetConfig_should_return_a_wildfire_config_with_filled_out_projects(t *testing.T) {
+	_ = setConfig("projects.wildfire.yaml")
+	config := pkg.GetConfig()
+
+	if len(config.Projects) != 5 {
+		t.Error("Invalid number of projects found. Expected 5 received ", len(config.Projects))
+	}
+
+	if len(config.Groups) != 0 {
+		t.Error("Invalid number of groups found. Expected 0 received", len(config.Groups))
+	}
+}
+
+func TestWildFireConfig_SaveConfig_should_create_the_config_file_if_it_is_missing(t *testing.T) {
+	//Removing the configuration if it exists
+	file := "new.wildfire.yaml"
+	dir, _ := os.Getwd()
+	cfgFile := filepath.FromSlash(fmt.Sprintf("%s/pkg/testdata/%s", dir, file))
+	_ = os.Remove(cfgFile)
+
+	if _, err := os.Stat(cfgFile); os.IsExist(err) {
+		t.Errorf("Failed to remove old test configuration file '%s'", cfgFile)
+	}
+
+	_ = setConfig(file)
+	config := &pkg.WildFireConfig{
+		Projects: map[string]pkg.Project{},
+		Groups:   map[string]pkg.ProjectGroup{},
+	}
+
+	config.Groups["foo"] = pkg.ProjectGroup{}
+	config.Projects["example"] = pkg.Project{
+		Name: "bar",
+		Type: pkg.ProjectTypeGit,
+		URL:  pkg.ProjectPath("git.com/bar/zaz"),
+	}
+
+	err := config.SaveConfig()
+
+	if err != nil {
+		t.Errorf("Failed to save configuration file '%s'. Error: %s", cfgFile, err)
+	}
+
+	updatedConfig := pkg.GetConfig()
+
+	if len(updatedConfig.Projects) != 1 {
+		t.Errorf(
+			"Invalid number of projects found in configuration. Expected 1 received %d", len(updatedConfig.Projects),
+			)
+	}
+
+	if len(updatedConfig.Groups) != 1 {
+		t.Errorf(
+			"Invalid number of groups found in configuration. Expected 1 receivec %d", len(updatedConfig.Groups),
+			)
+	}
+
+	err = os.Remove(cfgFile)
+	if err != nil {
+		t.Error("Failed to clear test env")
+	}
+}
 
 func TestWildFireConfig_AddProject_returns_nil_if_project_was_added(t *testing.T) {
 	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{}}

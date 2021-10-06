@@ -1,0 +1,21 @@
+projects:
+  anotherone:
+    name: anotherOne
+    type: git
+    url: github.com/enthys/example
+  anotherthree:
+    name: anotherThree
+    type: git
+    url: github.com/enthys/example
+  anothertwo:
+    name: anotherTwo
+    type: git
+    url: github.com/enthys/example
+  example:
+    name: example
+    type: git
+    url: github.com/enthys/example
+  thing:
+    name: thing
+    type: gitlab
+    url: git.wpx.net

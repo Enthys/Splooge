@@ -7,21 +7,22 @@ import (
 	"wildfire/pkg"
 )
 
-//fooProject = pkg.Project{"foo", pkg.ProjectTypeGit, "https://github.com/foo"}
-//config = &pkg.WildFireConfig{Projects: map[string]pkg.Project{ }}
+func TestCreateGroup_should_add_the_group_to_the_provided_configuration(t *testing.T) {
+
+}
 
 func TestProjectGroup_AddProject_should_add_the_name_of_project_to_its_collection(t *testing.T) {
 	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{
 		"foo": pkg.Project{"foo", pkg.ProjectTypeGit, "https://github.com/foo"},
 	}}
-	group := pkg.ProjectGroup{}
+	group := &pkg.ProjectGroup{}
 	group, err := group.AddProject(config, "foo")
 
 	if err != nil {
 		t.Error("Failed to add project to group")
 	}
 
-	if len(group) == 0 {
+	if len(*group) == 0 {
 		t.Error("Project was not added to ProjectGroup collection")
 	}
 }
@@ -38,10 +39,10 @@ func TestProjectGroup_AddProject_should_return_an_error_if_project_does_not_exis
 
 func TestProjectGroup_AddProject_should_not_add_projects_which_are_already_in_the_group(t *testing.T) {
 	config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{"foo": pkg.Project{"", "", ""}}}
-	group := pkg.ProjectGroup{"foo", "bar"}
+	group := &pkg.ProjectGroup{"foo", "bar"}
 	group, _ = group.AddProject(config, "foo")
 
-	if len(group) > 2 {
+	if len(*group) > 2 {
 		t.Error("Project should not have been added to group twice.")
 	}
 }
@@ -56,11 +57,24 @@ func TestProjectGroup_RemoveProject_should_remove_the_project_from_the_group(t *
 
 	expectedGroup := pkg.ProjectGroup{"foo", "zaz"}
 	if !reflect.DeepEqual(result, expectedGroup) {
-		t.Error(fmt.Sprintf(
+		t.Errorf(
+			"Expected group does not match result. Expected %+v received %+v",
+			expectedGroup,
+			group,
+		)
+	}
+}
+
+func TestProjectGroup_RemoveProject_should_return_the_same_project_group_if_project_does_not_exist(t *testing.T) {
+	group := &pkg.ProjectGroup{"foo", "bar"}
+	result := group.RemoveProject("zaz")
+
+	if !reflect.DeepEqual(group, &result) {
+		t.Errorf(
 			"Expected group does not match result. Expected %+v received %+v",
 			group,
-			expectedGroup,
-		))
+			&result,
+		)
 	}
 }
 

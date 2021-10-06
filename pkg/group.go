@@ -7,16 +7,29 @@ import (
 
 type ProjectGroup []string
 
-func (group *ProjectGroup) AddProject(config *WildFireConfig, projectName string) (ProjectGroup, error) {
+func CreateGroup(config *WildFireConfig, name string) *ProjectGroup {
+	group := ProjectGroup{}
+
+	if len(config.Groups) == 0 {
+		config.Groups = map[string]ProjectGroup{}
+	}
+
+	config.Groups[name] = group
+
+	return &group
+}
+
+func (group *ProjectGroup) AddProject(config *WildFireConfig, projectName string) (*ProjectGroup, error) {
 	if _, ok := config.Projects[projectName]; ok == false {
 		return nil, errors.New(fmt.Sprintf("Project with name `%s` does not exist", projectName))
 	}
 
 	if group.HasProject(&projectName) {
-		return *group, nil
+		return group, nil
 	}
 
-	return append(*group, projectName), nil
+	newGroup := append(*group, projectName)
+	return &newGroup, nil
 }
 
 func (group *ProjectGroup) HasProject(projectName *string) bool {
