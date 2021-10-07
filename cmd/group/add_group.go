@@ -27,6 +27,8 @@ Groups are primarily used when commands are to be executed on specific projects.
 			group := pkg.CreateGroup(config, args[0])
 
 			projectNames := args[1:]
+
+			emoji.Printf(":star: Created new group '%s'\n", args[0])
 			if len(projectNames) == 0 {
 				return config, true, nil
 			}
@@ -48,6 +50,7 @@ Groups are primarily used when commands are to be executed on specific projects.
 			}
 
 			if success == false {
+				emoji.Println(":error: Reverting configuration. Resolve issues and try again.")
 				return nil, false, nil
 			}
 

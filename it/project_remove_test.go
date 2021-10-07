@@ -10,22 +10,13 @@ import (
 )
 
 func TestRemoveProject(t *testing.T) {
-	cfgFile := getConfigFilePath("remove_project.wildfire.yaml")
-	_ = setConfig(cfgFile)
-	config := pkg.GetConfig()
-	_ = config.AddProject(&pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/url"})
-	_ = config.AddProject(&pkg.Project{"bar", pkg.ProjectTypeGit, "github.com/url"})
-	_ = config.AddProject(&pkg.Project{"zaz", pkg.ProjectTypeGit, "github.com/url"})
-	err := config.SaveConfig()
+	cfgFile := getConfigFilePath("project_remove.wildfire.yaml")
+	err := initiateConfiguration(cfgFile)
 	if err != nil {
-		t.Error("Failed to initialize configuration")
+		t.Errorf("Failed to initiate configuration. Error: %s", err)
 	}
-	config = pkg.GetConfig()
-	if len(config.Projects) != 3 {
-		t.Errorf(
-			"Failed to initialize configuration projects. Expected to have 3 projects found '%d'", len(config.Projects),
-		)
-	}
+
+	config := pkg.GetConfig()
 
 	defer func() {
 		err = os.Remove(cfgFile)

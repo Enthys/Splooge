@@ -25,22 +25,10 @@ func (r MockInputReader) ReadRune() (rune, int, error) {
 }
 
 func TestSetProject(t *testing.T) {
-	cfgFile := getConfigFilePath("set_project.wildfire.yaml")
-	_ = os.Remove(cfgFile)
-	_ = setConfig(cfgFile)
-	config := pkg.GetConfig()
-	_ = config.AddProject(&pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/url"})
-	_ = config.AddProject(&pkg.Project{"bar", pkg.ProjectTypeGit, "github.com/url"})
-	_ = config.AddProject(&pkg.Project{"zaz", pkg.ProjectTypeGit, "github.com/url"})
-	err := config.SaveConfig()
+	cfgFile := getConfigFilePath("project_set.wildfire.yaml")
+	err := initiateConfiguration(cfgFile)
 	if err != nil {
-		t.Error("Failed to initialize configuration")
-	}
-	config = pkg.GetConfig()
-	if len(config.Projects) != 3 {
-		t.Errorf(
-			"Failed to initialize configuration projects. Expected to have 3 projects found '%d'", len(config.Projects),
-		)
+		t.Errorf("Failed to initiate configuration. Error: %s", err)
 	}
 
 	defer func() {
@@ -50,7 +38,33 @@ func TestSetProject(t *testing.T) {
 		}
 	}()
 
-	t.Run("Should replace the project configuration", func(t *testing.T) {
+	t.Run("Should not replace the project configuration if we don't have user approval", func(t *testing.T) {
+		cmd := project.NewSetProjectCmd(NewMockInputReader('N'))
+		cmd.SetArgs([]string{"foo", string(pkg.ProjectTypeGitLab), "github.com/example/new"})
+		err = cmd.Execute()
+		if err != nil {
+			t.Errorf("Failed to Set Project. Command should have resolved. Error: %s", err)
+		}
+
+		config := pkg.GetConfig()
+		updatedPackage := config.GetProject("foo")
+		if updatedPackage.Type != pkg.ProjectTypeGit {
+			t.Errorf(
+				"Project type was not updated. Expected '%s' received '%s'",
+				pkg.ProjectTypeGit,
+				updatedPackage.Type,
+			)
+		}
+		if updatedPackage.URL != "github.com/url" {
+			t.Errorf(
+				"Project URL was not updated. Expected '%s' received '%s'",
+				"github.com/url",
+				updatedPackage.URL,
+			)
+		}
+	})
+
+	t.Run("Should replace the project configuration if it already exists and we have user approval", func(t *testing.T) {
 		cmd := project.NewSetProjectCmd(NewMockInputReader('y'))
 		cmd.SetArgs([]string{"foo", string(pkg.ProjectTypeGitLab), "github.com/example/new"})
 		err = cmd.Execute()
@@ -99,6 +113,36 @@ func TestSetProject(t *testing.T) {
 				pkg.ProjectTypeBitBucket,
 				newProject.URL,
 			)
+		}
+	})
+
+	t.Run("should return an error if the provided project type is invalid", func(t *testing.T) {
+		cmd := project.NewSetProjectCmd(NewMockInputReader('y'))
+		cmd.SetArgs([]string{"baz", "invalid_type", "bitbucket.com/example/bar"})
+		err := cmd.Execute()
+		if err == nil {
+			t.Error("Command should have returned an error, instead it resolved")
+		}
+	})
+
+	t.Run("should return an error if the provided arguments are less than required", func(t *testing.T) {
+		testCall := func(args []string) {
+			cmd := project.NewSetProjectCmd(NewMockInputReader('y'))
+			cmd.SetArgs([]string{"foo"})
+			err := cmd.Execute()
+			if err == nil {
+				t.Error("Command should have returned an error, instead it resolved")
+			}
+		}
+		testArgs := [][]string{
+			{"foo"},
+			{"foo", "bar"},
+			{"foo", "bar", "zaz", "baz"},
+			{"foo", "bar", "zaz", "baz", "far"},
+		}
+
+		for _, args := range testArgs {
+			testCall(args)
 		}
 	})
 }

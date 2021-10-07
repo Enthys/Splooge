@@ -11,7 +11,7 @@ import (
 
 func TestAddProject(t *testing.T) {
 	t.Run("Should add project to configuration file", func(t *testing.T) {
-		cfgName := getConfigFilePath("add_project_test.wildfire.yaml")
+		cfgName := getConfigFilePath("project_add_test.wildfire.yaml")
 		_ = setConfig(cfgName)
 
 		addProjectCmd := project.NewAddProjectCmd()
@@ -32,6 +32,27 @@ func TestAddProject(t *testing.T) {
 
 		if err != nil {
 			t.Errorf("Failed to clean up test environment. Error: %s", err)
+		}
+	})
+
+	t.Run("Should throw an error if the provided arguments are an invalid amount", func(t *testing.T) {
+		testFunc := func(args []string) {
+			cmd := project.NewAddProjectCmd()
+			cmd.SetArgs(args)
+			err := cmd.Execute()
+			if err == nil {
+				t.Errorf("Command should have thrown an error instead of resolving. Provided args: %s", args)
+			}
+		}
+		testArgs := [][]string {
+			{"foo"},
+			{"foo", "bar"},
+			{"foo", "bar", "zaz", "baz"},
+			{"foo", "bar", "zaz", "baz", "far"},
+		}
+
+		for _, args := range testArgs {
+			testFunc(args)
 		}
 	})
 

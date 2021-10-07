@@ -5,6 +5,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
+	"wildfire/pkg"
 )
 
 func getConfigFilePath(fileName string) string {
@@ -26,4 +27,26 @@ func setConfig(cfgFile string) error {
 
 func deleteConfig(cfgFile string) error {
 	return os.Remove(cfgFile)
+}
+
+func initiateConfiguration(cfgFile string) error {
+	_ = os.Remove(cfgFile)
+	_ = setConfig(cfgFile)
+	config := pkg.GetConfig()
+	_ = config.AddProject(&pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/url"})
+	_ = config.AddProject(&pkg.Project{"bar", pkg.ProjectTypeGit, "github.com/url"})
+	_ = config.AddProject(&pkg.Project{"zaz", pkg.ProjectTypeGit, "github.com/url"})
+	err := config.SaveConfig()
+	if err != nil {
+		return fmt.Errorf("failed to save configuration")
+	}
+	config = pkg.GetConfig()
+	if len(config.Projects) != 3 {
+		return fmt.Errorf(
+			"expected to have 3 projects found '%d'",
+			len(config.Projects),
+			)
+	}
+
+	return nil
 }

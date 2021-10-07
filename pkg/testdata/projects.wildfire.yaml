@@ -1,21 +1,21 @@
 projects:
-  anotherone:
-    name: anotherOne
+  foo:
+    name: foo
     type: git
-    url: github.com/enthys/example
-  anotherthree:
-    name: anotherThree
+    url: github.com/example/foo
+  bar:
+    name: bar
     type: git
-    url: github.com/enthys/example
-  anothertwo:
-    name: anotherTwo
+    url: github.com/example/bar
+  zaz:
+    name: zaz
     type: git
-    url: github.com/enthys/example
-  example:
-    name: example
+    url: github.com/example/zaz
+  baz:
+    name: baz
     type: git
-    url: github.com/enthys/example
-  thing:
-    name: thing
-    type: gitlab
-    url: git.wpx.net
+    url: github.com/example/baz
+  far:
+    name: far
+    type: git
+    url: github.com/example/far
