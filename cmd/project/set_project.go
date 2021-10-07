@@ -1,17 +1,21 @@
 package project
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"github.com/kyokomi/emoji/v2"
 	"github.com/spf13/cobra"
-	"os"
+	"io"
 	"strings"
 	"wildfire/pkg"
 )
 
-func NewSetProjectCmd() *cobra.Command {
+type CharacterInputReader interface {
+	io.Reader
+	ReadRune() (rune, int, error)
+}
+
+func NewSetProjectCmd(reader CharacterInputReader) *cobra.Command {
 	return &cobra.Command{
 		Use:   "set name type url",
 		Short: "Update or create a Project in the configuration.",
@@ -50,7 +54,7 @@ url - The location through which to retrieve clone the project
 		RunE: pkg.ProjectFunc(func(config *pkg.WildFireConfig, cmd *cobra.Command, args []string) (*pkg.WildFireConfig, bool, error) {
 			project := config.GetProject(args[0])
 			if project != nil &&
-				!requestUserApproval(emoji.Sprintf(
+				!requestUserApproval(reader, emoji.Sprintf(
 					"Project '%s' already exists. Do you wish to overwrite the project configuration?",
 					args[0],
 				)) {
@@ -75,8 +79,7 @@ url - The location through which to retrieve clone the project
 	}
 }
 
-func requestUserApproval(message string) bool {
-	reader := bufio.NewReader(os.Stdin)
+func requestUserApproval(reader CharacterInputReader, message string) bool {
 	fmt.Print(message, "[y/N]: ")
 
 	text, _, _ := reader.ReadRune()
