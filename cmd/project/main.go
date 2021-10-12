@@ -3,6 +3,7 @@ package project
 import (
 	"bufio"
 	"github.com/spf13/cobra"
+	"os"
 )
 
 var ProjectCmd = &cobra.Command{
@@ -12,5 +13,5 @@ var ProjectCmd = &cobra.Command{
 func init() {
 	ProjectCmd.AddCommand(NewAddProjectCmd())
 	ProjectCmd.AddCommand(NewRemoveProjectCmd())
-	ProjectCmd.AddCommand(NewSetProjectCmd(&bufio.Reader{}))
+	ProjectCmd.AddCommand(NewSetProjectCmd(bufio.NewReader(os.Stdin)))
 }

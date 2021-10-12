@@ -1,4 +1,4 @@
-package pkg_test
+package unit_test
 
 import (
 	"fmt"
@@ -27,7 +27,7 @@ func TestProjectFunc(t *testing.T) {
 		}
 	})
 
-	t.Run("should update the configuration if second argument is true", func(t *testing.T) {
+	t.Run("should update the configuration if second returned argument is true", func(t *testing.T) {
 		cfgFile := getConfigFilePath("new.wildfire.yaml")
 		_ = deleteConfig(cfgFile)
 		_ = setConfig(cfgFile)

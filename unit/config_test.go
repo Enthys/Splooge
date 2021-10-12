@@ -1,4 +1,4 @@
-package pkg_test
+package unit_test
 
 import (
 	"fmt"
@@ -183,6 +183,29 @@ func TestWildFireConfig(t *testing.T) {
 			if fooProject.Type != pkg.ProjectTypeGitLab ||
 				fooProject.URL != "github.com/foo/bar/zaz" {
 				t.Error("Project has not overwritten old project")
+			}
+		})
+	})
+
+	t.Run("HasProject", func(t *testing.T) {
+		config := &pkg.WildFireConfig{Projects: map[string]pkg.Project{
+			"foo": {"foo", pkg.ProjectTypeGit, "github.com/foo/bar"},
+			"bar": {"bar", pkg.ProjectTypeGit, "github.com/bar/bar"},
+		}}
+
+		t.Run("Should return true if the project exists in the configuration", func(t *testing.T) {
+			result := config.HasProject("foo")
+
+			if result != true {
+				t.Errorf("HasProject should have returned true. Expected '%t' received '%t'", true, result)
+			}
+		})
+
+		t.Run("Should return false if the project does not exist in the configuration", func(t *testing.T) {
+			result := config.HasProject("zaz")
+
+			if result != false {
+				t.Errorf("HasProject should have returned false. Expected '%t' received '%t'", false, result)
 			}
 		})
 	})

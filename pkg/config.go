@@ -66,3 +66,9 @@ func (config *WildFireConfig) RemoveProject(projectName string) {
 func (config *WildFireConfig) SetProject(project *Project) {
 	config.Projects[project.Name] = *project
 }
+
+func (config *WildFireConfig) HasProject(projectName string) bool {
+	_, ok := config.Projects[projectName];
+
+	return ok
+}

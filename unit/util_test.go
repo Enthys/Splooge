@@ -1,4 +1,4 @@
-package pkg_test
+package unit_test
 
 import (
 	"fmt"
@@ -9,7 +9,7 @@ import (
 
 func getConfigFilePath(fileName string) string {
 	dir, _ := os.Getwd()
-	return filepath.FromSlash(fmt.Sprintf("%s/pkg/testdata/%s", dir, fileName))
+	return filepath.FromSlash(fmt.Sprintf("%s/testdata/%s", dir, fileName))
 }
 
 func setConfig(cfgFile string) error {

@@ -35,7 +35,7 @@ Groups are primarily used when commands are to be executed on specific projects.
 
 			success := true
 			for _, name := range projectNames {
-				exists := projectExists(config, name)
+				exists := config.HasProject(name)
 
 				if exists == false {
 					emoji.Println(":prohibited: Project ", name, " does not exist in this configuration.")
@@ -61,14 +61,4 @@ Groups are primarily used when commands are to be executed on specific projects.
 		SilenceUsage: true,
 		SilenceErrors: true,
 	}
-}
-
-func projectExists(config *pkg.WildFireConfig, projectName string) bool {
-	for _, project := range config.Projects {
-		if project.Name == projectName {
-			return true
-		}
-	}
-
-	return false
 }

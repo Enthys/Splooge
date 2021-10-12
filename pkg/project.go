@@ -1,5 +1,10 @@
 package pkg
 
+import (
+	"github.com/go-git/go-git/v5"
+	"os"
+)
+
 type ProjectType string
 
 const (
@@ -28,4 +33,19 @@ type Project struct {
 	Name string
 	Type ProjectType
 	URL  ProjectPath
+	DefaultBranch string
+
+}
+
+func (project *Project) PullProject(path string) error {
+	_, err := git.PlainClone(path, false, &git.CloneOptions{
+		URL:      string(project.URL),
+		Progress: os.Stdout,
+	})
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

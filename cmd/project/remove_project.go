@@ -8,7 +8,7 @@ import (
 
 func NewRemoveProjectCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "remove project-name...",
+		Use:   "remove <project name>...",
 		Short: "Remove project from configuration and all groups.",
 		RunE: pkg.ProjectFunc(func(config *pkg.WildFireConfig, cmd *cobra.Command, args []string) (*pkg.WildFireConfig, bool, error) {
 			if len(args) == 0 {

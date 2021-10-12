@@ -8,4 +8,6 @@ var GroupCmd = &cobra.Command{
 
 func init() {
 	GroupCmd.AddCommand(NewCreateGroupCmd())
+	GroupCmd.AddCommand(NewDeleteGroupCmd())
+	GroupCmd.AddCommand(NewPullGroupCmd())
 }
