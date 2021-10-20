@@ -1,4 +1,4 @@
-package group
+package clone
 
 import (
 	"errors"
@@ -7,13 +7,13 @@ import (
 	"github.com/spf13/cobra"
 	"os"
 	"path/filepath"
-	"sync"
 	"wildfire/pkg"
+	"wildfire/pkg/project_repository"
 )
 
-func NewPullGroupCmd() *cobra.Command {
+func NewPullProjectCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "pull <group name> [path]",
+		Use:   "project <project name> [path]",
 		Short: "Pull group projects from their repositories",
 		Long:  `Pull the projects stored in the specified group in the current directory or a specified directory.`,
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -24,9 +24,19 @@ func NewPullGroupCmd() *cobra.Command {
 			return nil
 		},
 		RunE: pkg.ProjectFunc(func(config *pkg.WildFireConfig, cmd *cobra.Command, args []string) (*pkg.WildFireConfig, bool, error) {
-			group, ok := config.Groups[args[0]]
-			if ok == false {
-				return config, false, fmt.Errorf("group '%s' does not exist in configuration", args[0])
+			projectService := pkg.NewProjectService(config)
+			groupService := pkg.NewGroupService(config)
+			projectRepoService := project_repository.NewProjectRepositoryService(
+				&projectService,
+				&groupService,
+				project_repository.NewCloner(os.Stdout),
+			)
+			projectName := args[0]
+
+			project := projectService.GetProject(projectName)
+
+			if project == nil {
+				return config, false, emoji.Errorf("Project '%s' does not exist in configuration.", projectName)
 			}
 
 			var pullPath string
@@ -38,32 +48,14 @@ func NewPullGroupCmd() *cobra.Command {
 				pullPath = filepath.FromSlash(fmt.Sprintf("%s/%s", currentWD, args[0]))
 			}
 
-			var err error
-			var wg sync.WaitGroup
-			wg.Add(len(group))
-
-			for _, projectName := range group {
-				go func(projectName string) {
-					err = config.GetProject(projectName).PullProject(
-						filepath.FromSlash(fmt.Sprintf("%s/%s", pullPath, projectName)),
-					)
-
-					if err != nil {
-						err = emoji.Errorf("Failed to clone project '%s'. Error: ", err)
-					}
-					wg.Done()
-				}(projectName)
-			}
-
-			wg.Wait()
+			err := projectRepoService.PullProject(
+				filepath.FromSlash(fmt.Sprintf("%s/%s", pullPath, projectName)),
+				project,
+			)
 
 			if err != nil {
-				for _, projectName := range group {
-					err = os.RemoveAll(filepath.FromSlash(fmt.Sprintf("%s/%s", pullPath, projectName)))
-					if os.IsNotExist(err) {
-						break;
-					}
-				}
+				err = emoji.Errorf("Failed to clone project '%s'. Error: ", err)
+				err = os.RemoveAll(filepath.FromSlash(fmt.Sprintf("%s/%s", pullPath, projectName)))
 			}
 
 			return config, false, nil

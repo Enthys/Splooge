@@ -15,10 +15,21 @@ func NewRemoveProjectCmd() *cobra.Command {
 				return config, false, nil
 			}
 
-			for _, projectName := range args {
-				config.RemoveProject(projectName)
+			projectService := pkg.NewProjectService(config)
+			groupService := pkg.NewGroupService(config)
 
-				emoji.Println(":cloud: Removing project: ", projectName)
+			for _, projectName := range args {
+				projectService.RemoveProject(projectName)
+
+				emoji.Println(":cloud: Removed project: ", projectName)
+
+				for groupName, _ := range config.Groups {
+					group := groupService.GetGroup(groupName)
+					if groupService.HasProject(group, projectName) == true {
+						group = groupService.RemoveProject(group, projectName)
+						emoji.Println(emoji.Sprintf(":dash: Removed project '%s' from group '%s'", projectName, groupName))
+					}
+				}
 			}
 
 			return config, true, nil

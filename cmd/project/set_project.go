@@ -18,9 +18,9 @@ type CharacterInputReader interface {
 func NewSetProjectCmd(reader CharacterInputReader) *cobra.Command {
 	return &cobra.Command{
 		Use:   "set name type url",
-		Short: "Update or create a Project in the configuration.",
+		Short: "Update or create a ProjectConfig in the configuration.",
 		Long: fmt.Sprintf(
-			`Update or create a Project in the configuration.
+			`Update or create a ProjectConfig in the configuration.
 Warning! If a project already exists with the provided name it will be overwritten.
 
 name - The name of the project. Will be used to store in the configuration groups.
@@ -52,16 +52,17 @@ url - The location through which to retrieve clone the project
 			return nil
 		},
 		RunE: pkg.ProjectFunc(func(config *pkg.WildFireConfig, cmd *cobra.Command, args []string) (*pkg.WildFireConfig, bool, error) {
-			project := config.GetProject(args[0])
+			projectService := pkg.NewProjectService(config)
+			project := projectService.GetProject(args[0])
 			if project != nil &&
 				!requestUserApproval(reader, emoji.Sprintf(
-					"Project '%s' already exists. Do you wish to overwrite the project configuration?",
+					"ProjectConfig '%s' already exists. Do you wish to overwrite the project configuration?",
 					args[0],
 				)) {
 				return config, false, nil
 			}
 
-			config.SetProject(&pkg.Project{
+			projectService.UpdateOrCreate(&pkg.ProjectConfig{
 				Name: args[0],
 				Type: pkg.ProjectType(args[1]),
 				URL:  pkg.ProjectPath(args[2]),

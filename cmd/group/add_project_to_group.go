@@ -7,17 +7,17 @@ import (
 	"wildfire/pkg"
 )
 
-func NewCreateGroupCmd() *cobra.Command {
+func NewAddProjectToGroupCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "create <name> [project...]",
-		Short: "Create project group",
-		Long: `Create new project group.
+		Use:   "add-project <name> <project>...",
+		Short: "Add project to group",
+		Long: `Add project to group.
 
-ProjectConfig groups are groups which contain projects existing in the configuration.
-Groups are primarily used when commands are to be executed on specific projects.
+Will add projects to group if group exists.
+If some project name does not exist in the configuration then no projects will be added. 
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) < 1 {
+			if len(args) < 2 {
 				return errors.New("invalid number of arguments provided")
 			}
 
@@ -29,17 +29,12 @@ Groups are primarily used when commands are to be executed on specific projects.
 
 			groupName := args[0]
 
-			group, err := groupService.CreateGroup(groupName)
-			if err != nil {
-				return config, false, err
+			group := groupService.GetGroup(groupName)
+			if group == nil {
+				return config, false, emoji.Errorf("Group '%s' does not exist", groupName)
 			}
 
 			projectNames := args[1:]
-
-			emoji.Printf(":star: Created new group '%s'\n", groupName)
-			if len(projectNames) == 0 {
-				return config, true, nil
-			}
 
 			success := true
 			for _, name := range projectNames {
@@ -58,7 +53,7 @@ Groups are primarily used when commands are to be executed on specific projects.
 			}
 
 			if success == false {
-				emoji.Println(":error: Reverting configuration. Resolve issues and try again.")
+				emoji.Println(":error: Group was not updated. Resolve issues and try again.")
 				return config, false, nil
 			}
 

@@ -1,6 +1,7 @@
 package it_test
 
 import (
+	"fmt"
 	"os"
 	"testing"
 	"wildfire/cmd/group"
@@ -42,26 +43,21 @@ func TestGroupCreate(t *testing.T) {
 		}
 	})
 
-	t.Run("should add provided by name projects to group if projects exist", func(t *testing.T) {
+	t.Run("should add projects to group if projects exist", func(t *testing.T) {
 		cmd := group.NewCreateGroupCmd()
-		cmd.SetArgs([]string{"foo", "foo", "bar", "zaz"})
+		cmd.SetArgs([]string{"bar", "foo", "bar", "zaz"})
 		err := cmd.Execute()
 		if err != nil {
 			t.Errorf("Command should not have returned an error. Error: %s", err)
 		}
 
 		config := pkg.GetConfig()
-		if len(config.Groups) != 1 {
-			t.Errorf(
-				"Invalid number of groups found in configuration. Expected '%d' found '%d'",
-				1,
-				len(config.Groups),
-			)
-		}
+		groupService := pkg.NewGroupService(config)
 
-		newGroup := config.Groups["foo"]
-		if len(newGroup) != 3 {
-			t.Errorf("Invalid number of projects found in group. Expected '%d' found '%d'", 3, len(newGroup))
+		newGroup := groupService.GetGroup("bar")
+		fmt.Println(newGroup)
+		if len(*newGroup) != 3 {
+			t.Errorf("Invalid number of projects found in group. Expected '%d' found '%d'", 3, len(*newGroup))
 		}
 	})
 }

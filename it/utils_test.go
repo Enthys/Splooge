@@ -33,9 +33,10 @@ func initiateConfiguration(cfgFile string) error {
 	_ = os.Remove(cfgFile)
 	_ = setConfig(cfgFile)
 	config := pkg.GetConfig()
-	_ = config.AddProject(&pkg.Project{"foo", pkg.ProjectTypeGit, "github.com/url"})
-	_ = config.AddProject(&pkg.Project{"bar", pkg.ProjectTypeGit, "github.com/url"})
-	_ = config.AddProject(&pkg.Project{"zaz", pkg.ProjectTypeGit, "github.com/url"})
+	projectService := pkg.NewProjectService(config)
+	projectService.UpdateOrCreate(&pkg.ProjectConfig{"foo", pkg.ProjectTypeGit, "github.com/url"})
+	projectService.UpdateOrCreate(&pkg.ProjectConfig{"bar", pkg.ProjectTypeGit, "github.com/url"})
+	projectService.UpdateOrCreate(&pkg.ProjectConfig{"zaz", pkg.ProjectTypeGit, "github.com/url"})
 	err := config.SaveConfig()
 	if err != nil {
 		return fmt.Errorf("failed to save configuration")

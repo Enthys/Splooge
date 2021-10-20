@@ -1,45 +1,47 @@
 package pkg
 
 import (
-	"errors"
 	"fmt"
 )
 
-type ProjectGroup []string
-
-func CreateGroup(config *WildFireConfig, name string) *ProjectGroup {
-	group := ProjectGroup{}
-
-	if len(config.Groups) == 0 {
-		config.Groups = map[string]ProjectGroup{}
-	}
-
-	config.Groups[name] = group
-
-	return &group
+type GroupService interface {
+	GetGroup(name string) *GroupConfig
+	CreateGroup(name string) (*GroupConfig, error)
+	DeleteGroup(name string)
+	HasProject(group *GroupConfig, projectName string) bool
+	AddProject(group *GroupConfig, projectName string) (*GroupConfig, error)
+	RemoveProject(group *GroupConfig, projectName string) *GroupConfig
 }
 
-func RemoveGroup(config *WildFireConfig, groupName string) {
-	delete(config.Groups, groupName)
+type Group struct {
+	Config *WildFireConfig
 }
 
-func (group *ProjectGroup) AddProject(config *WildFireConfig, projectName string) (*ProjectGroup, error) {
-	if _, ok := config.Projects[projectName]; ok == false {
-		return nil, errors.New(fmt.Sprintf("Project with name `%s` does not exist", projectName))
-	}
-
-	if group.HasProject(&projectName) {
-		return group, nil
-	}
-
-	newGroup := append(*group, projectName)
-	return &newGroup, nil
+func NewGroupService(config *WildFireConfig) GroupService {
+	return &Group{config}
 }
 
+func (g *Group) GetGroup(name string) *GroupConfig {
+	return g.Config.Groups[name]
+}
 
-func (group *ProjectGroup) HasProject(projectName *string) bool {
+func (g *Group) CreateGroup(name string) (*GroupConfig, error) {
+	if _, ok := g.Config.Groups[name]; ok == true {
+		return nil, fmt.Errorf("group with name '%s' already exists", name)
+	}
+
+	g.Config.Groups[name] = &GroupConfig{}
+
+	return g.Config.Groups[name], nil
+}
+
+func (g *Group) DeleteGroup(name string) {
+	delete(g.Config.Groups, name)
+}
+
+func (g *Group) HasProject(group *GroupConfig, projectName string) bool {
 	for _, project := range *group {
-		if project == *projectName {
+		if project == projectName {
 			return true
 		}
 	}
@@ -47,13 +49,30 @@ func (group *ProjectGroup) HasProject(projectName *string) bool {
 	return false
 }
 
-func (group *ProjectGroup) RemoveProject(projectName string) ProjectGroup {
-	g := *group
-	for index, groupProjectName := range g {
+func (g *Group) AddProject(group *GroupConfig, projectName string) (*GroupConfig, error) {
+	_, ok := g.Config.Projects[projectName]
+	if ok == false {
+		return nil, fmt.Errorf("project with name '%s' does not exist", projectName)
+	}
+
+	grp := *group
+	grp = append(grp, projectName)
+	*group = grp
+
+	return group, nil
+}
+
+func (g *Group) RemoveProject(group *GroupConfig, projectName string) *GroupConfig {
+
+	for index, groupProjectName := range *group {
 		if groupProjectName == projectName {
-			return append(g[:index], g[index+1:]...)
+			grp := *group
+			grp = append(grp[:index], grp[index+1:]...)
+			*group = grp
+
+			return group
 		}
 	}
 
-	return *group
+	return group
 }

@@ -43,21 +43,22 @@ func TestSetProject(t *testing.T) {
 		cmd.SetArgs([]string{"foo", string(pkg.ProjectTypeGitLab), "github.com/example/new"})
 		err = cmd.Execute()
 		if err != nil {
-			t.Errorf("Failed to Set Project. Command should have resolved. Error: %s", err)
+			t.Errorf("Failed to Set ProjectConfig. Command should have resolved. Error: %s", err)
 		}
 
 		config := pkg.GetConfig()
-		updatedPackage := config.GetProject("foo")
+		ps := pkg.NewProjectService(config)
+		updatedPackage := ps.GetProject("foo")
 		if updatedPackage.Type != pkg.ProjectTypeGit {
 			t.Errorf(
-				"Project type was not updated. Expected '%s' received '%s'",
+				"ProjectConfig type was not updated. Expected '%s' received '%s'",
 				pkg.ProjectTypeGit,
 				updatedPackage.Type,
 			)
 		}
 		if updatedPackage.URL != "github.com/url" {
 			t.Errorf(
-				"Project URL was not updated. Expected '%s' received '%s'",
+				"ProjectConfig URL was not updated. Expected '%s' received '%s'",
 				"github.com/url",
 				updatedPackage.URL,
 			)
@@ -69,21 +70,22 @@ func TestSetProject(t *testing.T) {
 		cmd.SetArgs([]string{"foo", string(pkg.ProjectTypeGitLab), "github.com/example/new"})
 		err = cmd.Execute()
 		if err != nil {
-			t.Errorf("Failed to Set Project. Command should have resolved. Error: %s", err)
+			t.Errorf("Failed to Set ProjectConfig. Command should have resolved. Error: %s", err)
 		}
 
 		config := pkg.GetConfig()
-		updatedPackage := config.GetProject("foo")
+		ps := pkg.NewProjectService(config)
+		updatedPackage := ps.GetProject("foo")
 		if updatedPackage.Type != pkg.ProjectTypeGitLab {
 			t.Errorf(
-				"Project type was not updated. Expected '%s' received '%s'",
+				"ProjectConfig type was not updated. Expected '%s' received '%s'",
 				pkg.ProjectTypeGitLab,
 				updatedPackage.Type,
 			)
 		}
 		if updatedPackage.URL != "github.com/example/new" {
 			t.Errorf(
-				"Project URL was not updated. Expected '%s' received '%s'",
+				"ProjectConfig URL was not updated. Expected '%s' received '%s'",
 				"github.com/example/new",
 				updatedPackage.URL,
 			)
@@ -99,17 +101,18 @@ func TestSetProject(t *testing.T) {
 		}
 
 		config := pkg.GetConfig()
-		newProject := config.GetProject("baz")
+		ps := pkg.NewProjectService(config)
+		newProject := ps.GetProject("baz")
 		if newProject.Type != pkg.ProjectTypeBitBucket {
 			t.Errorf(
-				"New Project has invalid type. Expected '%s' received '%s'",
+				"New ProjectConfig has invalid type. Expected '%s' received '%s'",
 				pkg.ProjectTypeBitBucket,
 				newProject.Type,
 			)
 		}
 		if newProject.URL != "bitbucket.com/example/bar" {
 			t.Errorf(
-				"New Project has invalid type. Expected '%s' received '%s'",
+				"New ProjectConfig has invalid type. Expected '%s' received '%s'",
 				pkg.ProjectTypeBitBucket,
 				newProject.URL,
 			)

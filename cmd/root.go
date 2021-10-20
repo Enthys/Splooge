@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/viper"
 	"os"
 	"path/filepath"
+	"wildfire/cmd/clone"
 	"wildfire/cmd/group"
 	"wildfire/cmd/project"
 )
@@ -15,8 +16,6 @@ var cfgFile string
 var rootCmd = &cobra.Command{
 	Use:   "wildfire",
 	Short: "Application for mass update of repositories",
-	Run: func(cmd *cobra.Command, args []string) {
-	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -33,6 +32,7 @@ func init() {
 
 	rootCmd.AddCommand(project.ProjectCmd)
 	rootCmd.AddCommand(group.GroupCmd)
+	rootCmd.AddCommand(clone.CloneCmd)
 }
 
 // initConfig reads in config file and ENV variables if set.
