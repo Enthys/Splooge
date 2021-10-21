@@ -1,6 +1,8 @@
 package clone
 
-import "github.com/spf13/cobra"
+import (
+	"github.com/spf13/cobra"
+)
 
 var CloneCmd = &cobra.Command{
 	Use: "clone",
