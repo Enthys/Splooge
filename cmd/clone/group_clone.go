@@ -23,17 +23,26 @@ import (
 var someProjects bool
 
 type UserInput interface {
+	PickBool(msg string) (bool, error)
 	PlainInput(msg string) (string, error)
 	PickOne(msg string, options []string) (string, error)
 	PickMultiple(msg string, options []string) ([]string, error)
 }
 
-type SurveyUserInput struct {}
+type SurveyUserInput struct{}
+
+func (s SurveyUserInput) PickBool(msg string) (bool, error) {
+	var response bool
+	if err := survey.AskOne(&survey.Confirm{Message: msg, Default: false}, &response); err != nil {
+		return false, err
+	}
+
+	return response, nil
+}
 
 func (s SurveyUserInput) PlainInput(msg string) (string, error) {
 	var response string
-	err := survey.AskOne(&survey.Input{Message: msg}, &response)
-	if err != nil {
+	if err := survey.AskOne(&survey.Input{Message: msg}, &response); err != nil {
 		return "", err
 	}
 
@@ -42,11 +51,7 @@ func (s SurveyUserInput) PlainInput(msg string) (string, error) {
 
 func (s SurveyUserInput) PickOne(msg string, options []string) (string, error) {
 	var response string
-	err := survey.AskOne(
-		&survey.Select{Message: msg, Options: options},
-		&response,
-	)
-	if err != nil {
+	if err := survey.AskOne(&survey.Select{Message: msg, Options: options}, &response); err != nil {
 		return "", err
 	}
 
@@ -55,12 +60,7 @@ func (s SurveyUserInput) PickOne(msg string, options []string) (string, error) {
 
 func (s SurveyUserInput) PickMultiple(msg string, options []string) ([]string, error) {
 	var response []string
-	err := survey.AskOne(
-		&survey.MultiSelect{Message: msg, Options: options},
-		&response,
-	)
-
-	if err != nil {
+	if err := survey.AskOne(&survey.MultiSelect{Message: msg, Options: options}, &response); err != nil {
 		return nil, err
 	}
 
@@ -91,12 +91,25 @@ func (executor *pullGroupExecutor) Execute(groupName string, path string, partia
 		*group = projects
 	}
 
-	err := executor.cloneGroupProjects(group, path)
-	if err != nil {
-		clearErr := executor.clearPath(path)
+	if _, err := os.Stat(path); !os.IsNotExist(err) {
+		remove, err := executor.userInput.PickBool("Folder already exists. Clear path and try again?")
+		if err != nil {
+			return err
+		}
 
-		if clearErr != nil {
-			err = fmt.Errorf("%s\n%s", err.Error(), clearErr.Error())
+		if remove {
+			err = executor.clearPath(path)
+			if err != nil {
+				return err
+			}
+		} else {
+			return nil
+		}
+	}
+
+	if err := executor.cloneGroupProjects(group, path); err != nil {
+		if err := executor.clearPath(path); err != nil {
+			err = fmt.Errorf("%s\n%s", err.Error(), err.Error())
 		}
 
 		return err
@@ -119,17 +132,27 @@ func (executor *pullGroupExecutor) Execute(groupName string, path string, partia
 		if err == terminal.InterruptErr {
 			return nil
 		}
-
 		if err != nil {
 			return err
 		}
-		if action == "Run command" {
-			err = executor.runCommand(*group, path)
 
-			if err != nil && err != terminal.InterruptErr {
+		if action == "Run command" {
+			if err := executor.runCommand(*group, path); err != nil && err != terminal.InterruptErr {
 				return err
 			}
+
+			continue
 		}
+
+		if action == "Clear clones and Exit" {
+			action = "Exit"
+			if err := executor.clearPath(path); err != nil {
+				return err
+			}
+
+			break
+		}
+
 		if action == "Exit" {
 			break
 		}
@@ -162,12 +185,10 @@ func (executor *pullGroupExecutor) cloneGroupProjects(
 	for _, projectName := range *group {
 		go func(projectName string) {
 			project := executor.projectService.GetProject(projectName)
-			err := executor.repoService.PullProject(
+			if err := executor.repoService.PullProject(
 				filepath.FromSlash(fmt.Sprintf("%s/%s", pullPath, projectName)),
 				project,
-			)
-
-			if err != nil {
+			); err != nil {
 				errString = fmt.Sprintf(
 					"%s\nFailed to clone project '%s'. Error: %s",
 					errString,
@@ -238,7 +259,6 @@ func (executor *pullGroupExecutor) runCommand(group pkg.GroupConfig, path string
 		return parts[0], parts[1:], nil
 	}(actionString)
 
-
 	var wg sync.WaitGroup
 	results := sync.Map{}
 	var errors []error
@@ -248,7 +268,6 @@ func (executor *pullGroupExecutor) runCommand(group pkg.GroupConfig, path string
 	wg.Add(len(group))
 
 	for _, project := range group {
-		fmt.Println(project)
 		go func(project string) {
 			defer wg.Done()
 
@@ -262,6 +281,8 @@ func (executor *pullGroupExecutor) runCommand(group pkg.GroupConfig, path string
 				errors = append(errors, err)
 			}
 
+			fmt.Println(fmt.Sprintf("Project '%s' is done.", project))
+
 			results.Store(project, buf.String())
 			executionProgressBar.Increment()
 		}(project)
@@ -269,12 +290,29 @@ func (executor *pullGroupExecutor) runCommand(group pkg.GroupConfig, path string
 
 	p.Wait()
 
-	results.Range(func(projectName, result interface{}) bool {
-		fmt.Println(projectName)
-		fmt.Println(result)
+	checkResults, err := executor.userInput.PickBool("Do you want to see the output?")
+	if err != nil {
+		return err
+	}
+	if checkResults == true {
+		keys := []string{}
+		results.Range(func(key, _ interface{}) bool {
+			keys = append(keys, strings.ToLower(key.(string)))
+			return true
+		})
+		keys = append(keys, "Done")
 
-		return true
-	})
+		var action string
+		for action != "Done" {
+			action, err = executor.userInput.PickOne("Select project", keys)
+			if action == "Done" {
+				break
+			}
+
+			fmt.Println("Printing output of last command for project:", action)
+			fmt.Println(results.Load(action))
+		}
+	}
 
 	return nil
 }

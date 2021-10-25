@@ -2,6 +2,7 @@ package unit_test
 
 import (
 	"fmt"
+	assert2 "github.com/stretchr/testify/assert"
 	"reflect"
 	"testing"
 	"wildfire/pkg"
@@ -83,6 +84,36 @@ func TestProjectGroup(t *testing.T) {
 			g := groupService.GetGroup("foo")
 			if g != nil {
 				t.Errorf("Failed to retrieve group from configuration. Expected '%v' received '%v'", nil, g)
+			}
+		})
+	})
+
+	t.Run("GetGroupNames", func(t *testing.T) {
+		t.Run("Should return a list of the group names", func(t *testing.T) {
+			testCases := []struct{
+				Groups map[string]*pkg.GroupConfig
+				Expected []string
+			}{
+				{
+					Groups: map[string]*pkg.GroupConfig{"foo": {}, "bar": {}, "zaz": {}},
+					Expected: []string{"foo", "bar", "zaz"},
+				},
+				{
+					Groups: map[string]*pkg.GroupConfig{"foo": {"A", "B", "C"}, "bar": {"D"}},
+					Expected: []string{"foo", "bar"},
+				},
+				{
+					Groups: map[string]*pkg.GroupConfig{},
+					Expected: []string{},
+				},
+			}
+
+			for _, testCase := range testCases {
+				config := &pkg.WildFireConfig{Groups: testCase.Groups}
+				groupService := pkg.NewGroupService(config)
+				result := groupService.GetGroupNames()
+
+				assert2.ElementsMatch(t, result, testCase.Expected)
 			}
 		})
 	})

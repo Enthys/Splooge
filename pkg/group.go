@@ -6,6 +6,7 @@ import (
 
 type GroupService interface {
 	GetGroup(name string) *GroupConfig
+	GetGroupNames() []string
 	CreateGroup(name string) (*GroupConfig, error)
 	DeleteGroup(name string)
 	HasProject(group *GroupConfig, projectName string) bool
@@ -23,6 +24,16 @@ func NewGroupService(config *WildFireConfig) GroupService {
 
 func (g *Group) GetGroup(name string) *GroupConfig {
 	return g.Config.Groups[name]
+}
+
+func (g *Group) GetGroupNames() []string {
+	var res []string
+
+	for name, _ := range g.Config.Groups {
+		res = append(res, name)
+	}
+
+	return res
 }
 
 func (g *Group) CreateGroup(name string) (*GroupConfig, error) {

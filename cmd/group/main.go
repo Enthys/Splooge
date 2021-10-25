@@ -7,6 +7,7 @@ var GroupCmd = &cobra.Command{
 }
 
 func init() {
+	GroupCmd.AddCommand(NewListGroupsCommand())
 	GroupCmd.AddCommand(NewCreateGroupCmd())
 	GroupCmd.AddCommand(NewDeleteGroupCmd())
 	GroupCmd.AddCommand(NewAddProjectToGroupCmd())
