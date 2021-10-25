@@ -20,7 +20,7 @@ func NewListGroupsCommand() *cobra.Command {
 					fmt.Println(fmt.Sprintf("- %s (%d projects)", groupName, len(*group)))
 				}
 			} else {
-				fmt.Println("No group were found in configuration.")
+				fmt.Println("No groups were found in configuration.")
 			}
 
 			return config, false, nil
